@@ -1,0 +1,115 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: fogfire.vs
+////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////
+// GLOBALS //
+/////////////
+cbuffer MatrixBuffer
+{
+	matrix worldMatrix;
+    matrix secondWorldMatrix;
+	matrix viewMatrix;
+	matrix projectionMatrix;
+};
+
+cbuffer NoiseBuffer
+{
+	float frameTime;
+	float3 scrollSpeeds;
+	float3 scales;
+	float padding;
+};
+
+cbuffer FogBuffer
+{
+	float fogStart;
+	float fogEnd;
+};
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct VertexInputType
+{
+    float4 position : POSITION;
+    float2 tex : TEXCOORD0;
+	float3 instancePosition : TEXCOORD1;
+    float3 instanceRotation : TEXCOORD2;
+};
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+   	float2 texCoords1 : TEXCOORD1;
+	float2 texCoords2 : TEXCOORD2;
+	float2 texCoords3 : TEXCOORD3;
+    float fogFactor : FOG;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+PixelInputType FireVertexShader(VertexInputType input)
+{
+    PixelInputType output;
+    float4 cameraPosition;
+
+	matrix <float, 4, 4> translation =
+    {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        input.instancePosition.x, input.instancePosition.y, input.instancePosition.z, 1.0f
+
+    };
+
+    matrix <float, 4, 4> rotationAroundY =
+    {
+          cos(input.instanceRotation.y), 0.0f, -sin(input.instanceRotation.y), 0.0f,
+          0.0f, 1.0f, 0.0f, 0.0f,
+          sin(input.instanceRotation.y), 0.0f, cos(input.instanceRotation.y), 0.0f,
+          0.0f, 0.0f, 0.0f, 1.0f   
+    };
+
+    matrix <float, 4, 4> composition;
+
+    composition = mul(rotationAroundY,translation);
+
+	// Change the position vector to be 4 units for proper matrix calculations.
+    input.position.w = 1.0f;
+
+	// Calculate the position of the vertex against the world, view, and projection matrices.
+    output.position = mul(input.position,worldMatrix);
+    output.position = mul(output.position, composition);
+    output.position = mul(output.position, secondWorldMatrix);
+    output.position = mul(output.position, viewMatrix);
+
+    // Calculate the camera position.
+    cameraPosition = output.position;
+
+    output.position = mul(output.position, projectionMatrix);
+    
+	// Store the texture coordinates for the pixel shader.
+	output.tex = input.tex;
+
+    // Compute texture coordinates for first noise texture using the first scale and upward scrolling speed values.
+	output.texCoords1 = (input.tex * scales.x);
+	output.texCoords1.y = output.texCoords1.y + (frameTime * scrollSpeeds.x);
+
+    // Compute texture coordinates for second noise texture using the second scale and upward scrolling speed values.
+	output.texCoords2 = (input.tex * scales.y);
+	output.texCoords2.y = output.texCoords2.y + (frameTime * scrollSpeeds.y);
+
+    // Compute texture coordinates for third noise texture using the third scale and upward scrolling speed values.
+	output.texCoords3 = (input.tex * scales.z);
+	output.texCoords3.y = output.texCoords3.y + (frameTime * scrollSpeeds.z);
+	
+    // Calculate linear fog.    
+    output.fogFactor = saturate((fogEnd - cameraPosition.z) / (fogEnd - fogStart));
+
+    return output;
+}

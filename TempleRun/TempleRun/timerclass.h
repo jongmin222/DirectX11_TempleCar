@@ -1,0 +1,42 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: timerclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _TIMERCLASS_H_
+#define _TIMERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include <windows.h>
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: TimerClass
+////////////////////////////////////////////////////////////////////////////////
+class TimerClass
+{
+public:
+	TimerClass();
+	TimerClass(const TimerClass&);
+	~TimerClass();
+
+	bool Initialize();
+	void Frame();
+
+	float GetFrameTime();
+	float GetStartTime();
+
+	bool Play;
+	void Restart();
+
+private:
+	INT64 m_frequency;
+	float m_ticksPerMs;
+	INT64 m_startTime;
+	INT64 m_currentTime;
+	float m_frameTime;
+	float time;
+};
+
+#endif

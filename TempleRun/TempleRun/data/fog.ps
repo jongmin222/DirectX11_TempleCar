@@ -1,0 +1,46 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: fog.ps
+////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////
+// GLOBALS //
+/////////////
+Texture2D shaderTexture;
+SamplerState SampleType;
+
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+	float fogFactor : FOG;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+float4 FogPixelShader(PixelInputType input) : SV_TARGET
+{
+	float4 textureColor;
+    float4 fogColor;
+    float4 finalColor;
+    float4 resultColor;
+	
+    // Sample the texture pixel at this location.
+    textureColor = shaderTexture.Sample(SampleType, input.tex);
+    
+    // Set the color of the fog to grey.
+    fogColor = float4(0.4f, 0.4f, 0.4f, 1.0f);
+    resultColor = float4(textureColor.x / 2 ,textureColor.y / 2,textureColor.z / 2, 1.0f);
+
+    // Calculate the final color using the fog effect equation.
+    //finalColor = input.fogFactor * textureColor + (1.0 - input.fogFactor) * fogColor;
+    finalColor = input.fogFactor * resultColor + (1.0 - input.fogFactor) * fogColor;
+
+	return finalColor;
+}

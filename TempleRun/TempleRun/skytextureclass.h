@@ -1,0 +1,36 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: skytextureclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SKYTEXTURECLASS_H_
+#define _SKYTEXTURECLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include <d3d11.h>
+#include "DirectXTex.h"
+#include "DDSTextureLoader.h"
+
+using namespace DirectX;
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: SkyTextureClass
+////////////////////////////////////////////////////////////////////////////////
+class SkyTextureClass
+{
+public:
+	SkyTextureClass();
+	SkyTextureClass(const SkyTextureClass&);
+	~SkyTextureClass();
+
+	bool Initialize(ID3D11Device*, const WCHAR*);
+	void Shutdown();
+
+	ID3D11ShaderResourceView* GetTexture();
+
+private:
+	ID3D11ShaderResourceView* m_texture;
+};
+
+#endif
